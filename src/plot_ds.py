@@ -123,7 +123,7 @@ def plot_filterbank(filterbank_path, save_folder=None, p1=5, p2=95, source_name=
     tsampl = header.tsamp  # seconds
     freq_start = header.fch1
     channel_bw = header.foff
-    epoch = header.tstart
+    epoch = round(header.tstart, 6)
 
     print(f"  Number of channels: {nchan}")
     print(f"  Sample time: {tsampl} s")
