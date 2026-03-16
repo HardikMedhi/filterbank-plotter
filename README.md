@@ -48,7 +48,7 @@ python src/plot_ds.py /path/to/PSR_B1133+16_59500.fil
 #### Specify Frequency Range
 
 ```bash
-python src/plot_ds.py /path/to/PSR_B1133+16_59500.fil --f1 80 --f2 100
+python src/plot_ds.py /path/to/PSR_B1133+16_59500.fil --f1 100 --f2 80
 ```
 
 **Note:** Due to negative channel bandwidth in the ORT data format, `f1` (start frequency) will always be **higher** than `f2` (end frequency). For example, `--f1 326.2 --f2 325.8` selects frequencies between 325.8 and 326.2 MHz.
@@ -62,7 +62,7 @@ python src/plot_ds.py /path/to/PSR_B1133+16_59500.fil --save output_plots/
 #### Full Example with Frequency Range
 
 ```bash
-python src/plot_ds.py data/PSR_B1133+16_59500.fil --f1 150 --f2 250 --save ./results/
+python src/plot_ds.py data/PSR_B1133+16_59500.fil --f1 250 --f2 150 --save ./results/
 ```
 
 ### Programmatic Usage (Import)
@@ -79,8 +79,8 @@ fig, ax_main = plot_filterbank('/path/to/PSR_B1133+16_59500.fil')
 saved_path = plot_filterbank(
     '/path/to/PSR_B1133+16_59500.fil',
     save_folder='./results',
-    f1=80,
-    f2=100
+    f1=100,
+    f2=80
 )
 
 # Override source name (if not following naming convention)
