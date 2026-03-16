@@ -22,7 +22,7 @@ def readfilbank(fb_path):
     return header, data
 
 
-def visualizeData(source_name, mjd, reshaped_data, time_samples, freq_channels, x_vals=[], y_vals=[], save_folder=None, show_fig=True, p1=5, p2=95):
+def visualizeData(source_name, mjd, reshaped_data, time_samples, freq_channels, x_vals=[], y_vals=[], save_folder=None, show_fig=True):
     # Calculate mean profiles
     time_profile = np.mean(reshaped_data, axis=1)  # Mean across frequency (channels)
     freq_profile = np.mean(reshaped_data, axis=0)  # Mean across time (samples)
@@ -43,8 +43,8 @@ def visualizeData(source_name, mjd, reshaped_data, time_samples, freq_channels, 
         aspect='auto',
         origin='lower',
         cmap='inferno',
-        vmin=np.percentile(reshaped_data, p1),
-        vmax=np.percentile(reshaped_data, p2),
+        vmin=np.percentile(reshaped_data, 5),
+        vmax=np.percentile(reshaped_data, 95),
         extent=[time_samples[0], time_samples[-1], freq_channels[0], freq_channels[-1]]
     )
     ax_main.set_ylabel("Frequency (MHz)", fontsize=11)
@@ -93,13 +93,14 @@ def mjdToDateTime(mjd):
     return t.to_datetime(timezone=TimezoneInfo(utc_offset=5.5*u.hour))
 
 
-def plot_filterbank(filterbank_path, save_folder=None, p1=5, p2=95, source_name=None):
+def plot_filterbank(filterbank_path, save_folder=None, f1=None, f2=None, source_name=None):
     """Read a filterbank file and produce (or save) the dynamic spectrum plot.
 
     Parameters:
     - filterbank_path: str - path to the .fil file
     - save_folder: str or None - if provided, save the plot to this folder
-    - p1, p2: percentiles for color scaling
+    - f1: float or None - start frequency in MHz; if None, uses filterbank start frequency
+    - f2: float or None - end frequency in MHz; if None, uses filterbank end frequency
     - source_name: optional override for the source name used in the plot title
 
     Returns:
@@ -145,6 +146,19 @@ def plot_filterbank(filterbank_path, save_folder=None, p1=5, p2=95, source_name=
     time_samples = np.arange(nsamples) * tsampl
     freq_channels = freq_start + np.arange(nchan) * channel_bw
 
+    # Filter by frequency range if specified
+    if f1 is None:
+        f1 = freq_channels[0]
+    if f2 is None:
+        f2 = freq_channels[-1]
+
+    freq_mask = (freq_channels >= f1) & (freq_channels <= f2)
+    reshaped_data = reshaped_data[:, freq_mask]
+    freq_channels = freq_channels[freq_mask]
+    
+    print(f"  Frequency range: {f1:.2f} - {f2:.2f} MHz")
+    print(f"  Filtered data shape: {reshaped_data.shape} (samples × channels)")
+
     # Visualize the data
     print("Plotting dynamic spectrum...")
     show_fig = save_folder is None
@@ -157,8 +171,6 @@ def plot_filterbank(filterbank_path, save_folder=None, p1=5, p2=95, source_name=
         freq_channels=freq_channels,
         save_folder=save_folder,
         show_fig=show_fig,
-        p1=p1,
-        p2=p2,
     )
 
     if save_folder is None:
@@ -186,10 +198,10 @@ Example:
                        help='Path to the filterbank (.fil) file')
     parser.add_argument('--save', type=str, default=None,
                        help='Folder to save the plot (if not provided, plot will be displayed)')
-    parser.add_argument('--p1', type=float, default=5,
-                       help='Lower percentile for color scale (default: 5)')
-    parser.add_argument('--p2', type=float, default=95,
-                       help='Upper percentile for color scale (default: 95)')
+    parser.add_argument('--f1', type=float, default=None,
+                       help='Start frequency in MHz (default: filterbank start frequency)')
+    parser.add_argument('--f2', type=float, default=None,
+                       help='End frequency in MHz (default: filterbank end frequency)')
     
     args = parser.parse_args()
     
@@ -201,8 +213,8 @@ Example:
     result = plot_filterbank(
         filterbank_path=args.filterbank,
         save_folder=args.save,
-        p1=args.p1,
-        p2=args.p2,
+        f1=args.f1,
+        f2=args.f2,
     )
 
     # If the plot was displayed (result contains figure), show it

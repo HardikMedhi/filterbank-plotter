@@ -6,10 +6,10 @@ A Python script to plot dynamic spectra from filterbank (.fil) files, with suppo
 
 - **Dynamic Spectrum Visualization**: Display intensity variations across time and frequency
 - **Mean Profiles**: Automatically calculates and displays time and frequency profiles
-- **Flexible Color Scaling**: Adjustable percentile-based color mapping for better visualization
-- **Annotation Support**: Add vertical and horizontal lines to mark events of interest
+- **Frequency Range Selection**: Specify custom frequency range (f1, f2) or use the entire filterbank bandwidth
 - **Batch Output**: Save plots directly to disk or display interactively
 - **Timezone Support**: Converts MJD timestamps to human-readable datetime with timezone adjustment
+- **Importable Module**: Use as a library in other Python projects
 
 ## Requirements
 
@@ -39,10 +39,16 @@ The source name is automatically extracted from the filename (the part before th
 
 ### Command-Line Usage
 
-#### Basic Usage
+#### Basic Usage (Full Frequency Range)
 
 ```bash
 python src/plot_ds.py /path/to/PSR_B1133+16_59500.fil
+```
+
+#### Specify Frequency Range
+
+```bash
+python src/plot_ds.py /path/to/PSR_B1133+16_59500.fil --f1 80 --f2 100
 ```
 
 #### Save to Directory
@@ -51,16 +57,10 @@ python src/plot_ds.py /path/to/PSR_B1133+16_59500.fil
 python src/plot_ds.py /path/to/PSR_B1133+16_59500.fil --save output_plots/
 ```
 
-#### Custom Color Scaling
+#### Full Example with Frequency Range
 
 ```bash
-python src/plot_ds.py /path/to/PSR_B1133+16_59500.fil --p1 2 --p2 98
-```
-
-#### Full Example
-
-```bash
-python src/plot_ds.py data/PSR_B1133+16_59500.fil --save ./results/ --p1 5 --p2 95
+python src/plot_ds.py data/PSR_B1133+16_59500.fil --f1 150 --f2 250 --save ./results/
 ```
 
 ### Programmatic Usage (Import)
@@ -70,15 +70,15 @@ You can also import `plot_filterbank()` to use this module in other projects:
 ```python
 from filterbank_plotter.src.plot_ds import plot_filterbank
 
-# Display plot interactively
+# Display plot interactively (full frequency range)
 fig, ax_main = plot_filterbank('/path/to/PSR_B1133+16_59500.fil')
 
-# Save plot to folder
+# Specify frequency range and save plot
 saved_path = plot_filterbank(
     '/path/to/PSR_B1133+16_59500.fil',
     save_folder='./results',
-    p1=2,
-    p2=98
+    f1=80,
+    f2=100
 )
 
 # Override source name (if not following naming convention)
@@ -91,14 +91,14 @@ fig, ax_main = plot_filterbank(
 #### Function Signature
 
 ```python
-plot_filterbank(filterbank_path, save_folder=None, p1=5, p2=95, source_name=None)
+plot_filterbank(filterbank_path, save_folder=None, f1=None, f2=None, source_name=None)
 ```
 
 **Parameters:**
 - `filterbank_path` (str): Path to the filterbank (.fil) file
 - `save_folder` (str or None, default=None): Folder to save the plot. If None, returns figure object
-- `p1` (float, default=5): Lower percentile for color scaling
-- `p2` (float, default=95): Upper percentile for color scaling
+- `f1` (float or None, default=None): Start frequency in MHz. If None, uses filterbank start frequency
+- `f2` (float or None, default=None): End frequency in MHz. If None, uses filterbank end frequency
 - `source_name` (str or None, default=None): Override source name; if None, extracts from filename
 
 **Returns:**
@@ -111,8 +111,8 @@ plot_filterbank(filterbank_path, save_folder=None, p1=5, p2=95, source_name=None
 |----------|------|---------|-------------|
 | `filterbank` | str | Required | Path to the filterbank (.fil) file in format `{source_name}_{mjd}.fil` |
 | `--save` | str | None | Folder to save the plot; if not provided, displays interactively |
-| `--p1` | float | 5 | Lower percentile for color scale |
-| `--p2` | float | 95 | Upper percentile for color scale |
+| `--f1` | float | None | Start frequency in MHz; if not provided, uses filterbank start frequency |
+| `--f2` | float | None | End frequency in MHz; if not provided, uses filterbank end frequency |
 
 ## Output
 
@@ -137,7 +137,8 @@ When saving, files are organized in a source-specific subfolder: `{save_folder}/
 
 - The script uses UTC+5:30 timezone conversion for datetime display (suitable for Indian Standard Time)
 - Data is automatically reshaped to (samples × channels) format
-- All frequency values are in MHz
-- All time values are in seconds
-- The module is fully importable; use `from filterbank_plotter.src.plot_ds import plot_filterbank` in other projects
+- All frequency values are in MHz; all time values are in seconds
+- The module is fully importable for use in other Python projects
 - Source name is automatically extracted from the filename (part before first underscore), or can be overridden programmatically
+- If frequency range is not specified, the entire filterbank bandwidth is used
+- Color scaling uses fixed percentiles (5th and 95th) for consistent visualization
