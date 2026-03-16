@@ -22,7 +22,7 @@ def readfilbank(fb_path):
     return header, data
 
 
-def visualizeData(source_name, mjd, reshaped_data, time_samples, freq_channels, x_vals=[], y_vals=[], save_folder=None, show_fig=True):
+def visualizeData(source_name, mjd, reshaped_data, time_samples, freq_channels, f1, f2, x_vals=[], y_vals=[], save_folder=None, show_fig=True):
     # Calculate mean profiles
     time_profile = np.mean(reshaped_data, axis=1)  # Mean across frequency (channels)
     freq_profile = np.mean(reshaped_data, axis=0)  # Mean across time (samples)
@@ -81,7 +81,7 @@ def visualizeData(source_name, mjd, reshaped_data, time_samples, freq_channels, 
     if save_folder is not None:
         folder_path = '/'.join([save_folder, source_name])
         os.makedirs(folder_path, exist_ok=True)
-        fig.savefig(f"{folder_path}/{source_name}_{mjd}_dyn_spec.jpeg", bbox_inches='tight', dpi=150)
+        fig.savefig(f"{folder_path}/{source_name}_{mjd}_{f1:.2f}_{f2:.2f}_dyn_spec.jpeg", bbox_inches='tight', dpi=150)
         plt.close(fig)
         return None
     
@@ -146,13 +146,25 @@ def plot_filterbank(filterbank_path, save_folder=None, f1=None, f2=None, source_
     time_samples = np.arange(nsamples) * tsampl
     freq_channels = freq_start + np.arange(nchan) * channel_bw
 
-    # Filter by frequency range if specified
-    if f1 is None:
-        f1 = freq_channels[0]
-    if f2 is None:
-        f2 = freq_channels[-1]
+    # Get file's frequency range
+    file_f_start = freq_channels[0]
+    file_f_end = freq_channels[-1]
 
-    freq_mask = (freq_channels >= f1) & (freq_channels <= f2)
+    # Filter by frequency range if specified, with clamping to file bandwidth
+    if f1 is None:
+        f1 = file_f_start
+    else:
+        # Clamp to file's frequency range
+        f1 = min(f1, file_f_start)
+    
+    if f2 is None:
+        f2 = file_f_end
+    else:
+        # Clamp to file's frequency range
+        f2 = max(f2, file_f_end)
+
+    # Filter channels by frequency range
+    freq_mask = (freq_channels <= f1) & (freq_channels >= f2)
     reshaped_data = reshaped_data[:, freq_mask]
     freq_channels = freq_channels[freq_mask]
     
@@ -169,6 +181,8 @@ def plot_filterbank(filterbank_path, save_folder=None, f1=None, f2=None, source_
         reshaped_data=reshaped_data,
         time_samples=time_samples,
         freq_channels=freq_channels,
+        f1=f1,
+        f2=f2,
         save_folder=save_folder,
         show_fig=show_fig,
     )
@@ -178,7 +192,7 @@ def plot_filterbank(filterbank_path, save_folder=None, f1=None, f2=None, source_
 
     # If saved, return the expected filepath
     folder_path = os.path.join(save_folder, source_name)
-    out_path = os.path.join(folder_path, f"{source_name}_{epoch}_dyn_spec.jpeg")
+    out_path = os.path.join(folder_path, f"{source_name}_{epoch}_{f1:.2f}_{f2:.2f}_dyn_spec.jpeg")
     return out_path
 
 

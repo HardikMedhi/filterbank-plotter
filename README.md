@@ -97,8 +97,8 @@ plot_filterbank(filterbank_path, save_folder=None, f1=None, f2=None, source_name
 **Parameters:**
 - `filterbank_path` (str): Path to the filterbank (.fil) file
 - `save_folder` (str or None, default=None): Folder to save the plot. If None, returns figure object
-- `f1` (float or None, default=None): Start frequency in MHz. If None, uses filterbank start frequency
-- `f2` (float or None, default=None): End frequency in MHz. If None, uses filterbank end frequency
+- `f1` (float or None, default=None): Start frequency in MHz. If None, uses filterbank start frequency. If outside file's bandwidth, clamped to nearest available frequency
+- `f2` (float or None, default=None): End frequency in MHz. If None, uses filterbank end frequency. If outside file's bandwidth, clamped to nearest available frequency
 - `source_name` (str or None, default=None): Override source name; if None, extracts from filename
 
 **Returns:**
@@ -122,9 +122,11 @@ The script generates a multi-panel figure including:
 - **Frequency profile**: Mean intensity across all time samples
 - **Colorbar**: Intensity scale reference
 
-Plots are saved as JPEG files with format: `{source_name}_{mjd}_dyn_spec.jpeg`
+Plots are saved as JPEG files with format: `{source_name}_{mjd}_{f1}_{f2}_dyn_spec.jpeg` where f1 and f2 are the frequency range boundaries in MHz.
 
-When saving, files are organized in a source-specific subfolder: `{save_folder}/{source_name}/{source_name}_{mjd}_dyn_spec.jpeg`
+**Example:** `PSR_B1133+16_60000.50_150.25_250.75_dyn_spec.jpeg`
+
+When saving, files are organized in a source-specific subfolder: `{save_folder}/{source_name}/{source_name}_{mjd}_{f1}_{f2}_dyn_spec.jpeg`
 
 ## Dependencies
 
@@ -141,4 +143,6 @@ When saving, files are organized in a source-specific subfolder: `{save_folder}/
 - The module is fully importable for use in other Python projects
 - Source name is automatically extracted from the filename (part before first underscore), or can be overridden programmatically
 - If frequency range is not specified, the entire filterbank bandwidth is used
+- If specified frequency values fall outside the filterbank's bandwidth, they are automatically clamped to the nearest available frequencies
 - Color scaling uses fixed percentiles (5th and 95th) for consistent visualization
+- Actual frequency boundaries used are always included in the output filename for traceability
