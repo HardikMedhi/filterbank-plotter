@@ -149,3 +149,7 @@ When saving, files are organized in a source-specific subfolder: `{save_folder}/
 - If specified frequency values fall outside the filterbank's bandwidth, they are automatically clamped to the nearest available frequencies
 - Color scaling uses fixed percentiles (5th and 95th) for consistent visualization
 - Actual frequency boundaries used are always included in the output filename for traceability
+
+## Author
+
+Hardik Medhi (with the help of Gemini 3 & Claude Haiku 4.5)
